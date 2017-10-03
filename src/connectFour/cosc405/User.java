@@ -67,6 +67,20 @@ public class User {
 
 	public void set_OpponentMove() {
 
+		int [] moves = getMove();
+		
+		for(int i = 0; i > moves.length; i++){
+			if(checkWin(moves[i], 'O') == true){ //Check to see if any moves will win
+				board_Arr[displace[i]][i] = 'O';
+				--displace[i];		
+				return;
+			}
+			else {
+				getLength(i); //find move with longest line make that move	
+				 }
+			}
+		}
+		
 		/*
 		 * This guy is dumb as hell but he works for testing!
 		 * 
@@ -80,14 +94,54 @@ public class User {
 		 * 
 		 * -What our Heuristic?
 		 * 
-		 */
-
+		 * 
+		 * Old OpponentMove() 
 		int c = rand.nextInt(6);
 
 		board_Arr[displace[c]][c] = 'O';
 
 		--displace[c];
+		 *
+		 *
+		 *
+		 */
+		
+		
+		
 
+	}
+	
+	public int [] getMove(){ // loop through board to find all availabe moves
+		/*get available moves
+		 * 
+		 * Check horizontal spaces
+		 * 
+		 * If open set open
+		 * 
+		 * If used push up
+		 * 
+		 * If full return null
+		 *
+		 * 
+		 */
+	}
+	
+	public boolean checkWin(int move, char c){
+		/*
+		 * 
+		 * 
+		 * 
+		 */
+	}
+	
+	public int getLength(int i){
+		/*Takes move and checks length of all lines
+		 * connected to move
+		 * 
+		 * returns line length
+		 */
+		int lineLength;
+		return lineLength;
 	}
 
 	public int print_colFullError() {

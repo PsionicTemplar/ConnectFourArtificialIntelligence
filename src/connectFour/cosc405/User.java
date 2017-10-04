@@ -10,9 +10,9 @@ public class User {
 
 	private Random rand = new Random();
 
-	private char board_Arr[][] = new char[6][7]; // Literal copy of our board
+	public static char board_Arr[][] = new char[6][7]; // Literal copy of our board
 
-	private int displace[] = new int[7]; // Keeps track of vertical spaces
+	public static int displace[] = new int[7]; // Keeps track of vertical spaces
 											// already taken
 
 	public User() {

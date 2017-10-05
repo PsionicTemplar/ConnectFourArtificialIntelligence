@@ -1,7 +1,9 @@
 package connectFour.cosc405;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
-
 import java.util.Scanner;
 
 public class User {
@@ -46,6 +48,7 @@ public class User {
 		}
 
 		else if (move == 7) {
+			checkWin(move, 'X');
 
 			board_Arr[displace[move - 1]][move - 1] = 'X';
 
@@ -54,6 +57,7 @@ public class User {
 		}
 
 		else if (move != 7) {
+			checkWin(move, 'X');
 
 			board_Arr[displace[move - 1]][move - 1] = 'X';
 
@@ -61,7 +65,7 @@ public class User {
 
 		}
 
-		this.set_OpponentMove();
+		//this.set_OpponentMove();
 
 	}
 
@@ -142,6 +146,36 @@ public class User {
 
 		return board_Arr;
 
+	}
+	
+	public boolean checkWin(int move, char c){
+		HashMap<Integer, List<Integer>> win = new HashMap<Integer, List<Integer>>();
+		char[][] arr = board_Arr.clone();
+		for(int i = 0; i < 6; i++){
+			if(arr[displace[move-1] - 1][i] != c){
+				win = new HashMap<Integer, List<Integer>>();
+				continue;
+			}else{
+				if(win.containsKey(displace[move-1] - 1)){
+					List<Integer> l = win.get(displace[move-1] - 1);
+					l.add(i);
+					for(int temp : l){
+						System.out.println(temp);
+					}
+					win.put(displace[move-1] - 1, l);
+					if(l.size() == 4){
+						System.out.println("Win!");
+						return true;
+					}
+				}else{
+					List<Integer> l = new ArrayList<Integer>();
+					l.add(i);
+					win.put(displace[move-1] - 1, l);
+				}
+			}
+		}
+		
+		return false;
 	}
 
 }

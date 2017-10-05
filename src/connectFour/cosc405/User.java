@@ -12,8 +12,8 @@ import java.lang.*;
 public class User {
     private Scanner u_scan = new Scanner(System.in);
     private Random rand = new Random();
-    private char board_Arr[][] = new char[6][7]; // Literal copy of our board
-    private int displace[];       // Keeps track of vertical spaces already taken
+    private char board_Arr[][] = new char[6][7];
+    private int displace[];
     
         public User(){
             displace = new int[]{5,5,5,5,5,5,5};
@@ -83,6 +83,37 @@ public class User {
            this.setMove();
         }
         
+        public int check_Heur(int move){
+            int heuristic = 0;
+            
+            
+            return heuristic;
+        }
+        
+        private int checkUpDo(int move){
+            int heurSeg = 0;
+            int count = 0;
+            
+            for(int i = displace[move]; i > -1; i--){
+                count++;
+             
+                if(count == 5){
+                    break;
+                }
+                else
+                    if(board_Arr[i][move] != 'X'){
+                        break;
+                    }
+                    else if(board_Arr[i][move] != 'O'){
+                        heurSeg++;
+                    }
+                    
+            }
+            return heurSeg;
+        }
+        
+        private int check
+        
         public void checkTopRow(){
             int count = 0;
             
@@ -122,7 +153,14 @@ public class User {
         
         public void gameOver(){
             System.out.print("\nNO WINNER!\n");
-            System.exit(0);
+            System.out.print("Would you like to play again? YES[1], NO[0]:");
+            int v = u_scan.nextInt();
+            
+            if(v == 1){
+                this.set_Choice();
+            }
+            else
+                System.exit(0);
         }
         
         public void print_colFullError(int t){

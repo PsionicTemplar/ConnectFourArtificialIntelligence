@@ -1,201 +1,231 @@
 //package connectFour.cosc405;
 
 import java.util.Random;
-
 import java.util.Scanner;
+import java.util.Set;
+import java.lang.*;
 
+/**
+ *
+ * @author alexw
+ */
 public class User {
+    private Scanner u_scan = new Scanner(System.in);
+    private Random rand = new Random();
+    private char board_Arr[][] = new char[6][7]; // Literal copy of our board
+    private int displace[];       // Keeps track of vertical spaces already taken
+    
+        public User(){
+            displace = new int[]{5,5,5,5,5,5,5};
 
-	private Scanner u_scan = new Scanner(System.in);
-
-	private Random rand = new Random();
-
-	private char board_Arr[][] = new char[6][7]; // Literal copy of our board
-
-	private int displace[] = new int[7]; // Keeps track of vertical spaces
-											// already taken
-
-	public User() {
-
-		for (int z = 0; z < 7; z++) {
-
-			displace[z] = 5;
-
-		} // This is stupid but it doesn't initialize properly below!
-
-		for (int i = 0; i < 6; i++) {
-
-			for (int z = 0; z < 7; z++) {
-
-				board_Arr[i][z] = ' ';
-
-				// displace[i] = 5;
-
-			}
-
-		}
-
-	}
-
-	public void setMove(int move) {
-
-		if (displace[move - 1] == -1) {
-
-			this.print_colFullError();
-
-		}
-
-		else if (move == 7) {
-
-			board_Arr[displace[move - 1]][move - 1] = 'X';
-
-			--displace[move - 1];
-
-		}
-
-		else if (move != 7) {
-
-			board_Arr[displace[move - 1]][move - 1] = 'X';
-
-			--displace[move - 1];
-
-		}
-
-		this.set_OpponentMove();
-
-	}
-
-	public void set_OpponentMove() {
-
-		int [] moves = getMove();
-		
-		for(int i = 0; i > moves.length; i++){
-			if(checkWin(moves[i], 'O') == true){ //Check to see if any moves will win
-				board_Arr[displace[i]][i] = 'O';
-				--displace[i];		
-				return;
-			}
-			else {
-				getLength(i); //find move with longest line make that move	
-				 }
-			}
-		}
-		
-		/*
-		 * This guy is dumb as hell but he works for testing!
-		 * 
-		 * To do:
-		 * 
-		 * -Add a brain, I was thinking of making 3 arrays that keep
-		 * 
-		 * track of up-down, side-side, diagonal but thats up for debat
-		 * 
-		 * obviously.
-		 * 
-		 * -What our Heuristic?
-		 * 
-		 * 
-		 * Old OpponentMove() 
-		int c = rand.nextInt(6);
-
-		board_Arr[displace[c]][c] = 'O';
-
-		--displace[c];
-		 *
-		 *
-		 *
-		 */
-		
-		
-		
-
-
-	
-	public int [] getMove(){ // loop through board to find all availabe moves
-		/*get available moves
-		 * 
-		 * Check horizontal spaces
-		 * 
-		 * If open set open
-		 * 
-		 * If used push up
-		 * 
-		 * If full return null
-		 *
-		 * 
-		 */
-	}
-	
-	public boolean checkWin(int move, char c){
-		/*
-		 * 
-		 * 
-		 * 
-		 */
-	}
-	
-	public int getLength(int i){
-		/*Takes move and checks length of all lines
-		 * connected to move
-		 * 
-		 * returns line length
-		 */
-		int lineLength;
-		return lineLength;
-	}
-
-	public int print_colFullError() {
-
-		/*
-		 * 
-		 * This needs to automated so the user can re-take their turn.
-		 * 
-		 */
-
-		System.out.print("That column is already full!\n");
-
-		return 6;
-
-	}
-
-	public void print_Board() {
-
-		for (int i = 0; i < 6; i++) {
-
-			for (int z = 0; z < 7; z++) {
-
-				if (z == 6) {
-
-					System.out.print("|" + board_Arr[i][z] + "|");
-
-				}
-
-				else
-
-					System.out.print("|" + board_Arr[i][z]);
-
-			}
-
-			System.out.append("\n");
-
-		}
-
-	}
-
-	public char[][] reset_Board() {
-
-		for (int i = 0; i < 6; i++) {
-
-			for (int z = 0; z < 7; z++) {
-
-				board_Arr[i][z] = ' ';
-
-			}
-
-		}
-
-		return board_Arr;
-
-	}
-
+            for(int i = 0; i < 6; i++){
+                for(int z = 0; z < 7; z++){
+                    board_Arr[i][z] = ' ';
+                    
+                }
+            }
+        }
+        public void set_Choice(){
+            System.out.print("----------------------------------\n");
+            System.out.print("Who will play first? 1=User, 0=Bot:");        
+            int choice = u_scan.nextInt();
+            
+            this.print_Board();
+            
+            if(choice==1){
+                this.setMove();
+            }
+            else
+                this.set_OpponentMove();
+        }
+        
+        public void setMove(){
+            
+            this.checkTopRow();
+            System.out.print("Select your next move:");
+            int move = 0;
+            
+            try{
+                move = u_scan.nextInt();
+                    if(displace[move-1] == -1){
+                        this.print_colFullError(1);
+                    }
+                    else
+                        board_Arr[displace[move-1]][move-1] = 'X';
+                            --displace[move-1];
+                            
+            }catch(Exception e){
+                if(move == 8){
+                    this.quitPrompt();
+                }
+                
+                System.out.print("\nPlease enter a value 1-7\n");
+                this.setMove();
+            } 
+            
+            this.print_Board();
+            this.set_OpponentMove();
+        }
+        
+        public void set_OpponentMove(){
+        	int playerHeur = 10;
+        	int oppHeur = 10;
+        	int playerMove = 0;
+        	int oppMove = 0;
+        	
+        	for (int i = 0; i <= 6; i++){
+        		if (displace[i] != 0){
+        			board_Arr[displace[i]][i] = 'O';
+        			--displace[i];
+        			//check_Heur(i);
+        		
+        		
+        		for (int j = 0; j <= 6; j++){
+            		if (displace[j] != 0){
+            			int x = check_Heur(j);
+            			if(playerHeur > x){
+            				playerHeur = x;
+            				playerMove = j;
+            			}
+            		}
+        		}
+        		int x = check_Heur(i);
+        		check_Heur(i);
+        		if(oppHeur > x){
+        			oppHeur = x;
+        			oppMove = i;
+        		}
+        		}
+        		
+    			board_Arr[displace[i]][i] = ' ';
+    			++displace[i];
+        		
+        	}
+        	
+        	}
+        	
+        	
+    /*
+     * old opponent move        
+            int r = rand.nextInt(7);
+            
+            this.checkTopRow();
+            
+            if(displace[r] <= -1){
+                this.print_colFullError(0);
+            }
+            else
+                board_Arr[displace[r]][r] = 'O';
+                    --displace[r];
+                    
+           this.print_Board();
+           this.setMove();
+           }
+	*/
+        
+        public int check_Heur(int move){
+        	//To be filled Check
+        	return 0;
+        }
+        
+        public void checkTopRow(){
+            int count = 0;
+            
+            for(int i = 0; i < 7; i++){
+                if(board_Arr[0][i] == 'X' || board_Arr[0][i] == 'O'){
+                    count++;
+                }
+            }
+            if(count == 7){
+                this.gameOver();
+            }
+            else
+                count = 0;
+                return;
+            
+        }
+        
+    	public boolean checkWin(int move, char c){
+    		/*
+    		 * 
+    		 * 
+    		 * 
+    		 */
+    		return false;
+    	}
+    	
+        public void quitPrompt(){
+        
+            System.out.print("\n---------------------------------------------");
+            System.out.print("\nAre you sure you want to quit? YES[1] NO[2]:");
+            try{
+                int b = u_scan.nextInt();
+                if(b == 2){
+                    this.setMove();
+                }
+                else
+                    System.out.print("\n-----------");
+                    System.out.print("\nGame Exited\n");
+                    System.out.print("-----------\n");
+                    System.exit(0);
+            }catch(Exception e){
+                System.out.print("Please enter a 1 for yes or 2 for no");
+                this.quitPrompt();
+            }
+        }
+        
+        public void gameOver(){
+            System.out.print("\nNO WINNER!\n");
+            System.exit(0);
+        }
+        
+        public void print_colFullError(int t){
+            /*
+                This needs to automated so the user can re-take their turn.
+            */
+            
+            if(t == 1){
+                System.out.print("That column is already full!\n");
+                //t = u_scan.nextInt();
+                this.setMove();
+            }
+            else
+                this.set_OpponentMove();
+            
+        }
+        
+        public void print_ExitEarly(){
+            System.out.print("ENTER 8 TO QUIT AT ANYTIME\n");
+        try {
+            // thread to sleep for 1000 milliseconds
+            Thread.sleep(1000);
+         } catch (Exception e){
+             return;
+         }
+        }
+        
+        public void print_Board(){
+            System.out.print("---------------\n");
+           
+            for(int i = 0; i < 6; i++){
+                for(int z = 0; z < 7; z++){
+                    if(z == 6){
+                        System.out.print("|" + board_Arr[i][z] + "|");
+                    }
+                    else
+                    System.out.print("|" + board_Arr[i][z]);
+                }
+                System.out.append("\n");
+            }
+            System.out.print("|1|2|3|4|5|6|7|\n");
+        }
+        public char[][] reset_Board(){
+            for(int i = 0; i < 6; i++){
+                for(int z = 0; z < 7; z++){
+                    board_Arr[i][z] = ' ';
+                }
+            }
+            return board_Arr;
+        }
+    
 }

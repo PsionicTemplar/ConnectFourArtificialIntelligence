@@ -1,4 +1,4 @@
-package connectFour.cosc405;
+//package connectFour.cosc405;
 
 import java.util.Random;
 
@@ -21,7 +21,7 @@ public class User {
 
 			displace[z] = 5;
 
-		} // This is stupid but it doesnt initialize properly below!
+		} // This is stupid but it doesn't initialize properly below!
 
 		for (int i = 0; i < 6; i++) {
 
@@ -109,7 +109,7 @@ public class User {
 		
 		
 
-	}
+
 	
 	public int [] getMove(){ // loop through board to find all availabe moves
 		/*get available moves

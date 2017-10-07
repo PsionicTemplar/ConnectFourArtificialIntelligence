@@ -16,77 +16,59 @@ public class User {
 
 
 	public static char board_Arr[][] = new char[6][7]; // Literal copy of our board
-
+        public static String board_Arr_Dupe[][] = new String[6][7];
 	public static int displace[] = new int[7]; // Keeps track of vertical spaces
 											// already taken
 
-
+      
 	public User() {
-		displace = new int[] { 5, 5, 5, 5, 5, 5, 5 };
+		
 
 		for (int i = 0; i < 6; i++) {
 			for (int z = 0; z < 7; z++) {
-				board_Arr[i][z] = ' ';
+				board_Arr_Dupe[i][z] = " ";
+                                
 			}
 		}
 	}
 
-	public void set_Choice() {
-		System.out.print("----------------------------------\n");
-		System.out.print("Who will play first? 1=User, 0=Bot:");
-		int choice = u_scan.nextInt();
+	public int height(int x){
+            boolean check = true;
+            int n = 0;
+            while(check){
+                for(int h = 0; h < 6; h++)
+                {
+                    if(" ".equals(board_Arr_Dupe[h][x])){
+                        check = false;
+                        
+                    }
+                     else
+                        n++;
+                }
+            }
+            return n;
+        }
 
-		this.print_Board();
+	public void setMove(int x) {
 
-		if (choice == 1) {
-			this.setMove();
-		} else
-			this.set_OpponentMove();
+            board_Arr_Dupe[height(x)][x - 1] = "X";                    
+           	
 	}
 
-	public void setMove() {
-
-		this.checkTopRow();
-		System.out.print("Select your next move:");
-		int move = 0;
-
-		try {
-			move = u_scan.nextInt();
-			if (displace[move - 1] == -1) {
-				this.print_colFullError(1);
-			} else {
-				board_Arr[displace[move - 1]][move - 1] = 'X';
-				--displace[move - 1];
-			}
-
-		} catch (Exception e) {
-			if (move == 8) {
-				this.quitPrompt();
-			}
-			e.printStackTrace();
-
-			System.out.print("\nPlease enter a value 1-7\n");
-			this.setMove();
-		}
-
-		this.print_Board();
-		this.set_OpponentMove();
-	}
-
-	public void set_OpponentMove() {
+	public void set_OpponentMove(int x) {
 
 		int r = rand.nextInt(7);
 
 		this.checkTopRow();
 
 		if (displace[r] <= -1) {
-			this.print_colFullError(0);
+			
 		} else
-			board_Arr[displace[r]][r] = 'O';
-		--displace[r];
+			board_Arr_Dupe[displace[r]][r] = "O";
+		
 
-		this.print_Board();
-		this.setMove();
+		
+		
 	}
 
 	public void checkTopRow() {
@@ -105,43 +87,14 @@ public class User {
 
 	}
 
-	public void quitPrompt() {
-
-		System.out.print("\n---------------------------------------------");
-		System.out.print("\nAre you sure you want to quit? YES[1] NO[2]:");
-		try {
-			int b = u_scan.nextInt();
-			if (b == 2) {
-				this.setMove();
-			} else
-				System.out.print("\n-----------");
-			System.out.print("\nGame Exited\n");
-			System.out.print("-----------\n");
-			System.exit(0);
-		} catch (Exception e) {
-			System.out.print("Please enter a 1 for yes or 2 for no");
-			this.quitPrompt();
-		}
-	}
+	
 
 	public void gameOver() {
 		System.out.print("\nNO WINNER!\n");
 		System.exit(0);
 	}
 
-	public void print_colFullError(int t) {
-		/*
-		 * This needs to automated so the user can re-take their turn.
-		 */
-
-		if (t == 1) {
-			System.out.print("That column is already full!\n");
-			// t = u_scan.nextInt();
-			this.setMove();
-		} else
-			this.set_OpponentMove();
-
-	}
+	
 
 	public void print_ExitEarly() {
 		System.out.print("ENTER 8 TO QUIT AT ANYTIME\n");

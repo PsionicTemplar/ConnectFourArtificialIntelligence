@@ -11,7 +11,7 @@ public class Main {
         User player = new User();
 
         player.print_ExitEarly();
-        player.set_Choice();
+        
            
     }
 }

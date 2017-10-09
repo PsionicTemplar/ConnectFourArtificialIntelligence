@@ -12,8 +12,6 @@ public class User {
     private Random rand = new Random();
     private char board_Arr[][] = new char[6][7];
     private int displace[];
-    Move playerMove = new Move();
-    Move opponentMove = new Move();
     
         public User(){
             displace = new int[]{5,5,5,5,5,5,5};
@@ -26,12 +24,16 @@ public class User {
         }
         public void set_Choice(){
             System.out.print("----------------------------------\n");
-            System.out.print("Who will play first? 1=User, 0=Bot:");        
+            System.out.print("Who will play first? 1=User, 0=Bot:");
+            
             int choice = u_scan.nextInt();
             
             this.print_Board();
             
-            if(choice==1){
+            if(choice==8){
+                this.quitPrompt();
+            }
+            else if(choice==1){
                 this.setMove();
             }
             else
@@ -142,7 +144,7 @@ public class User {
             //Check Up
             for(int i = displace[move]; i > -1; i--){
              
-                if(sign_Count + blank_Count == 4){
+                if(sign_Count + blank_Count == 3){
                     break;
                 }
                 else
@@ -153,7 +155,7 @@ public class User {
                         break;
             }
             
-            if(blank_Count + sign_Count < 4){
+            if(blank_Count + sign_Count < 3){
                         blank_Count = 10;
                     }
             
@@ -166,7 +168,7 @@ public class User {
             
             //Check Left
             for(int z = move; z > -1; z--){
-                if(sign_Count + blank_Count == 4){
+                if(sign_Count + blank_Count == 3){
                     break;
                 }
                 if(board_Arr[displace[move]][z] == player_Mark){
@@ -182,7 +184,7 @@ public class User {
             
             //Check Right
             for(int i = move; i < 7; i++){
-                if(sign_Count + blank_Count == 4){
+                if(sign_Count + blank_Count == 3){
                     break;
                 }
                 if(board_Arr[displace[move]][i] == player_Mark){
@@ -196,7 +198,7 @@ public class User {
                     break;
             }
             
-            if(blank_Count + sign_Count < 4){
+            if(blank_Count + sign_Count < 3){
                         blank_Count = 10;
                     }
             
@@ -226,7 +228,7 @@ public class User {
             outloop2:
             for(int i = displace[move]; i > -1; i--){
                 for(int z = move; z > -1; z--){
-                    if(blank_Count + sign_Count == 4){
+                    if(blank_Count + sign_Count == 3){
                         break outloop2;
                     }
                     if(board_Arr[displace[move]][i] == player_Mark){
@@ -245,7 +247,7 @@ public class User {
                 4 because if it is its not a win so set the value high
                 so heuristic is not considered for move.
             */
-            if(blank_Count + sign_Count < 4){
+            if(blank_Count + sign_Count < 3){
                         blank_Count = 10;
                     }
            
@@ -274,7 +276,7 @@ public class User {
             outloop2:
             for(int i = displace[move]; i < -1; i--){
                 for(int z = move; z < 7; z++){
-                    if(blank_Count + sign_Count == 4){
+                    if(blank_Count + sign_Count == 3){
                         break outloop2;
                     }
                     else if(board_Arr[displace[move]][i] == player_Mark){
@@ -288,7 +290,7 @@ public class User {
                 }
             }
             
-            if(blank_Count + sign_Count < 4){
+            if(blank_Count + sign_Count < 3){
                         blank_Count = 10;
                     }
            
@@ -470,6 +472,7 @@ public class User {
             int v = u_scan.nextInt();
             
             if(v == 1){
+                this.reset_Board();
                 this.set_Choice();
             }
             else
@@ -516,13 +519,15 @@ public class User {
             }
             System.out.print("|1|2|3|4|5|6|7|\n");
         }
-        public char[][] reset_Board(){
+        public void reset_Board(){
             for(int i = 0; i < 6; i++){
                 for(int z = 0; z < 7; z++){
                     board_Arr[i][z] = ' ';
                 }
             }
-            return board_Arr;
+            for(int z = 0; z < 6; z++){
+                displace[z] = 5;
+            }
         }
     
     }

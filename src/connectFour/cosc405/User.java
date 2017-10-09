@@ -4,17 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-import java.util.Scanner; 
+import java.util.Scanner;
 
-/**
- *
- * @author alexw
- */
 public class User {
+
     private Scanner u_scan = new Scanner(System.in);
     private Random rand = new Random();
-    private char board_Arr[][] = new char[6][7]; // Literal copy of our board
-    private int displace[];       // Keeps track of vertical spaces already taken
+    private char board_Arr[][] = new char[6][7];
+    private int displace[];
     
         public User(){
             displace = new int[]{5,5,5,5,5,5,5};
@@ -22,18 +19,21 @@ public class User {
             for(int i = 0; i < 6; i++){
                 for(int z = 0; z < 7; z++){
                     board_Arr[i][z] = ' ';
-                    
                 }
             }
         }
         public void set_Choice(){
             System.out.print("----------------------------------\n");
-            System.out.print("Who will play first? 1=User, 0=Bot:");        
+            System.out.print("Who will play first? 1=User, 0=Bot:");
+            
             int choice = u_scan.nextInt();
             
             this.print_Board();
             
-            if(choice==1){
+            if(choice==8){
+                this.quitPrompt();
+            }
+            else if(choice==1){
                 this.setMove();
             }
             else
@@ -42,7 +42,7 @@ public class User {
         
         public void setMove(){
             
-            this.checkTopRow();
+            this.checkTopRow('X');
             System.out.print("Select your next move:");
             int move = 0;
             
@@ -63,7 +63,11 @@ public class User {
                 System.out.print("\nPlease enter a value 1-7\n");
                 this.setMove();
             } 
-            
+            if(this.checkWin(move-1, displace[move-1]+1, 'X')){
+                this.print_Board();
+                this.gameOver(1, 'X');
+                return;
+            }
             this.print_Board();
             this.set_OpponentMove();
         }
@@ -73,73 +77,301 @@ public class User {
         	int oppHeur = 10;
         	int playerMove = 0;
         	int oppMove = 0;
-        	
+       /* 	
+        	if(this.firstMove){
+        		this.firstMove = false;
+        		int r = rand.nextInt(7);
+        		board_Arr[displace[r]][r] = 'O';
+        		displace[r]--;
+        		this.print_Board();
+            	this.setMove();
+        		return;
+        	}
+        	*/	
         	for (int i = 0; i <= 6; i++){
-        		if (displace[i] != 0){
+        		if (displace[i] > -1){
         			board_Arr[displace[i]][i] = 'O';
-        			--displace[i];
-        			//check_Heur(i);
-        		
+        			//check_Heur(i);	
         		
         		for (int j = 0; j <= 6; j++){
-            		if (displace[j] != 0){
-            			int x = check_Heur(j);
+            		if (displace[j] > -1){
+            			System.out.println(j);
+            			int x = check_Heur(j, 'X');
+            			//System.out.println("Player move: " + j);
+            			//System.out.println("Player heur val: " + x);
             			if(playerHeur > x){
             				playerHeur = x;
             				playerMove = j;
             			}
             		}
         		}
-        		int x = check_Heur(i);
-        		check_Heur(i);
+    			board_Arr[displace[i]][i] = ' ';
+        		int x = check_Heur(i, 'O');
+        		//System.out.println("Opp move: " + i);
+        		//System.out.println("Opp heur val: " + x);
+        		check_Heur(i, 'O');
         		if(oppHeur > x){
         			oppHeur = x;
         			oppMove = i;
         		}
-        		}
-        		
-    			board_Arr[displace[i]][i] = ' ';
-    			++displace[i];
-        		
+        		}     		
         	}
         	
         	if(playerHeur == 1){
-        		//block player
-        		board_Arr[playerMove][playerMove] = 'O';
+        		//System.out.println(playerMove);
+        		board_Arr[displace[playerMove]][playerMove] = 'O';
+        		if(this.checkWin(playerMove, displace[playerMove], 'O')){
+        			this.print_Board();
+        			this.gameOver(1, 'O');
+        			return;
+        		}
+        		displace[playerMove]--;
         	} else {
-        		board_Arr[oppMove][oppMove] = 'O';
-        		//make good move
+        		//System.out.println(oppMove);
+        		board_Arr[displace[oppMove]][oppMove] = 'O';
+				if(this.checkWin(oppMove, displace[oppMove], 'O')){
+					this.print_Board();
+					this.gameOver(1, 'O');
+        			return;
+        		}
+        		displace[oppMove]--;
         	}
         	
         	this.print_Board();
         	this.setMove();
+        }        
+
+        
+        /* 
+            If your passing the users requested move remember to subtract
+            one. This function needs the move and the mark of the player
+            i.e 'X' for player, 'O' for oppenent.
+        */
+        public int check_Heur(int move, char player_Mark){
+            int[] heurList = new int[4];
+            int bestHeur = 0;
+            
+            heurList[0] = this.checkUpDo(move, player_Mark);
+            heurList[1] = this.checkSides(move, player_Mark);
+            heurList[2] = this.check_Ldiag(move, player_Mark);
+            heurList[3] = this.check_Rdiag(move, player_Mark);
+            
+            bestHeur = heurList[0];
+            
+            for(int i = 0; i < 4; i++){
+                if(heurList[i] < bestHeur){
+                    bestHeur = heurList[i];
+                }
+            } 
+      
+            return bestHeur;
         }
-        	
-        	
-    /*
-     * old opponent move        
-            int r = rand.nextInt(7);
+        
+        private int checkUpDo(int move, char player_Mark){
+            int sign_Count = 0;  // player specific sign found
+            int blank_Count = 0; //# of blanks until win
             
-            this.checkTopRow();
-            
-            if(displace[r] <= -1){
-                this.print_colFullError(0);
+            //Check Down
+            for(int z = displace[move]+1; z < 6; z++){
+                if(board_Arr[z][move] == player_Mark){
+                    sign_Count++;
+                }
+                else
+                    break;
             }
-            else
-                board_Arr[displace[r]][r] = 'O';
-                    --displace[r];
-                    
-           this.print_Board();
-           this.setMove();
-           }
-	*/
-        
-        public int check_Heur(int move){
-        	//To be filled Check
-        	return 0;
+            if(displace[move]-4 < 0){
+                return 100;
+            }else{
+                return 4-sign_Count;
+            }
+            
+            /*
+            //Check Up
+            for(int i = displace[move]; i > -1; i--){
+             
+                if(sign_Count + blank_Count == 3){
+                    break;
+                }
+                else
+                    if(board_Arr[i][move] == ' '){
+                        blank_Count++;
+                    }
+                    else
+                        break;
+            }
+            
+            if(blank_Count + sign_Count < 3){
+                        blank_Count = 10;
+                    }
+            
+            return blank_Count;
+            */
         }
         
-        public void checkTopRow(){
+        private int checkSides(int move, char player_Mark){
+            int sign_Count = 0;
+            int blank_Count = 0;
+            int blanks2fill = 0;
+            
+            for(int z = move-1; z > -1; z--){
+                if(sign_Count + blank_Count == 3){
+                    break;
+                }
+                else if(board_Arr[displace[move]][z] == player_Mark){
+                    sign_Count++;
+                }
+                else if(board_Arr[displace[move]][z] == ' '){
+                    blank_Count++;
+                    
+                    for(int k = displace[move]+1; k < 6; k++){
+                        if(board_Arr[k][move] == ' '){
+                            blanks2fill++;
+                        }
+                    }
+                }
+                else
+                    break;
+            }
+            
+            //Check Right
+            for(int i = move+1; i < 7; i++){
+                if(sign_Count + blank_Count == 3){
+                    break;
+                }
+                else if(board_Arr[displace[move]][i] == player_Mark){
+                    sign_Count++;
+                    break;
+                }
+                else if(board_Arr[displace[move]][i] == ' '){
+                    blank_Count++;
+                    
+                    for(int k = displace[move]+1; k < 6; k++){
+                        if(board_Arr[k][move] == ' '){
+                            blanks2fill++;
+                        }
+                    }
+                }
+                else
+                    break;
+            }
+            
+            if(blank_Count + sign_Count < 3){
+                        blank_Count = 10;
+                    }
+            
+            return blank_Count + blanks2fill;
+        }
+        
+        private int check_Ldiag(int move, char player_Mark){
+            int sign_Count = 0;
+            int blank_Count = 0;
+            int blanks2fill = 0;
+            
+            // Check Down & Right
+            outloop1:
+            for(int i = displace[move]+1; i < 6; i++){
+                for(int z = move+1; z < 7; z++){
+                    if(board_Arr[i][z] == player_Mark){
+                        sign_Count++;
+                    }
+                    else if(board_Arr[i][z] == ' '){
+                        blank_Count++;
+                        
+                        for(int k = i; k < 6; k++){
+                            if(board_Arr[k][z] == ' '){
+                                blanks2fill++;
+                            }
+                        }
+                    }
+                    else
+                        break outloop1;
+                }
+            }
+            
+            // Check Up and Left
+            outloop2:
+            for(int i = displace[move]-1; i > -1; i--){
+                for(int z = move-1; z > -1; z--){
+                    if(blank_Count + sign_Count == 3){
+                        break outloop2;
+                    }
+                    if(board_Arr[i][z] == player_Mark){
+                        sign_Count++;
+                    }
+                    else if(board_Arr[i][z] == ' '){
+                        blank_Count++;
+                        for(int k = i; k < 6; k++){
+                            if(board_Arr[k][z] == ' '){
+                                blanks2fill++;
+                            }
+                        }
+                    }
+                    else
+                        break outloop2;
+                }
+            }
+            if(blank_Count + sign_Count < 3){
+                        blank_Count = 10;
+                    }
+           
+            return blank_Count + blanks2fill;
+        }
+        
+        private int check_Rdiag(int move, char player_Mark){
+            int sign_Count = 0;
+            int blank_Count = 0;
+            int blanks2fill = 0;
+            
+            //Check Down and Left
+            outloop1:
+            for(int i = displace[move]+1; i > 6; i++){
+                for(int z = move-1; z > -1; z--){
+                    if(board_Arr[i][z] == player_Mark){
+                        sign_Count++;
+                    }
+                    else if(board_Arr[i][z] == ' '){
+                        blank_Count++;
+                        for(int k = i; k < 6; k++){
+                            if(board_Arr[k][z] == ' '){
+                                blanks2fill++;
+                            }
+                        }
+                    }
+                    else
+                        break outloop1;
+                }
+            }
+            // Check Up and Right
+            outloop2:
+            for(int i = displace[move]-1; i < -1; i--){
+                for(int z = move+1; z < 7; z++){
+                    if(blank_Count + sign_Count == 3){
+                        break outloop2;
+                    }
+                    else if(board_Arr[i][z] == player_Mark){
+                        sign_Count++;
+                    }
+                    else if(board_Arr[i][z] == ' '){
+                        blank_Count++;
+                        for(int k = i; k < 6; k++){
+                            if(board_Arr[k][z] == ' '){
+                                blanks2fill++;
+                            }
+                        }
+                    }
+                    else
+                        break outloop2;
+                }
+            }
+            
+            if(blank_Count + sign_Count < 3){
+                        blank_Count = 10;
+                    }
+           
+            return blank_Count + blanks2fill;
+        }
+        
+        public void checkTopRow(char playerMark){
             int count = 0;
             
             for(int i = 0; i < 7; i++){
@@ -148,14 +380,146 @@ public class User {
                 }
             }
             if(count == 7){
-                this.gameOver();
+                this.gameOver(0, playerMark);
             }
             else
                 count = 0;
                 return;
             
         }
-            	
+        
+        public boolean checkWin(int x, int y, char c) {
+		HashMap<Integer, List<Integer>> win = new HashMap<Integer, List<Integer>>();
+		char[][] arr = board_Arr.clone();
+		if (arr[y][x] != c) {
+			arr[y][x] = c;
+		}
+		for (int i = 0; i < 7; i++) {
+			if (arr[y][i] != c) {
+				win = new HashMap<Integer, List<Integer>>();
+				continue;
+			} else {
+				if (win.containsKey(y)) {
+					List<Integer> l = win.get(y);
+					l.add(i);
+					win.put(y, l);
+					if (l.size() == 4) {
+						return true;
+					}
+				} else {
+					List<Integer> l = new ArrayList<Integer>();
+					l.add(i);
+					win.put(y, l);
+				}
+			}
+		}
+
+		for (int i = 5; i > -1; i--) {
+			if (arr[i][x] != c) {
+				win = new HashMap<Integer, List<Integer>>();
+				continue;
+			} else {
+				if (win.containsKey(x)) {
+					List<Integer> l = win.get(x);
+					l.add(i);
+					win.put(x, l);
+					if (l.size() == 4) {
+						return true;
+					}
+				} else {
+					List<Integer> l = new ArrayList<Integer>();
+					l.add(i);
+					win.put(x, l);
+				}
+			}
+		}
+
+		boolean stopLoop = false;
+		int tempX = x;
+		int tempY = y;
+
+		while (!stopLoop) {
+			if (tempX == 0 || tempY == 5) {
+				stopLoop = true;
+				continue;
+			}
+			tempX--;
+			tempY++;
+		}
+		int counter = 0;
+		
+		stopLoop = false;
+		while (!stopLoop) {
+			if (arr[tempY][tempX] != c) {
+				counter = 0;
+				tempY--;
+				tempX++;
+				if(tempY < 0){
+					break;
+				}
+				if(tempX > 6){
+					break;
+				}
+				continue;
+			} else {
+				counter++;
+				if (counter == 4) {
+					return true;
+				}
+				tempY--;
+				tempX++;
+				if(tempY < 0){
+					break;
+				}
+				if(tempX > 6){
+					break;
+				}
+			}
+		}
+		stopLoop = false;
+		tempX = x;
+		tempY = y;
+
+		while (!stopLoop) {
+			if (tempX == 6 || tempY == 5) {
+				stopLoop = true;
+				continue;
+			}
+			tempX++;
+			tempY++;
+		}
+		stopLoop = false;
+		while (!stopLoop) {
+			if (arr[tempY][tempX] != c) {
+				counter = 0;
+				tempY--;
+				tempX--;
+				if(tempY < 0){
+					break;
+				}
+				if(tempX < 0){
+					break;
+				}
+				continue;
+			} else {
+				counter++;
+				if (counter == 4) {
+					return true;
+				}
+				tempY--;
+				tempX--;
+				if(tempY < 0){
+					break;
+				}
+				if(tempX < 0){
+					break;
+				}
+			}
+		}
+
+		return false;
+	}
+        
         public void quitPrompt(){
         
             System.out.print("\n---------------------------------------------");
@@ -176,9 +540,32 @@ public class User {
             }
         }
         
-        public void gameOver(){
-            System.out.print("\nNO WINNER!\n");
-            System.exit(0);
+        public void gameOver(int i, char playerMark){
+            
+            if(i == 0){
+                System.out.print("\nNO WINNER!\n");
+            }
+            else if(i == 1){
+                if(playerMark == 'X'){
+                    System.out.print("------------");
+                    System.out.print("\nPlayer Wins!\n");
+                    System.out.print("------------");
+                }
+                else if(playerMark == 'O'){
+                    System.out.print("------------");
+                    System.out.print("\nOpponent Wins!\n");
+                    System.out.print("------------");
+                }
+            }
+            System.out.print("\nWould you like to play again? YES[1], NO[0]:");
+            int v = u_scan.nextInt();
+            
+            if(v == 1){
+                this.reset_Board();
+                this.set_Choice();
+            }
+            else
+                System.exit(0);
         }
         
         public void print_colFullError(int t){
@@ -221,145 +608,15 @@ public class User {
             }
             System.out.print("|1|2|3|4|5|6|7|\n");
         }
-        public char[][] reset_Board(){
+        public void reset_Board(){
             for(int i = 0; i < 6; i++){
                 for(int z = 0; z < 7; z++){
                     board_Arr[i][z] = ' ';
                 }
             }
-            return board_Arr;
+            for(int z = 0; z < 6; z++){
+                displace[z] = 5;
+            }
         }
-        
-    	public boolean checkWin(int x, int y, char c) {
-    		HashMap<Integer, List<Integer>> win = new HashMap<Integer, List<Integer>>();
-    		char[][] arr = board_Arr.clone();
-    		if (arr[y][x] != c) {
-    			arr[y][x] = c;
-    		}
-    		for (int i = 0; i < 7; i++) {
-    			if (arr[y][i] != c) {
-    				win = new HashMap<Integer, List<Integer>>();
-    				continue;
-    			} else {
-    				if (win.containsKey(y)) {
-    					List<Integer> l = win.get(y);
-    					l.add(i);
-    					win.put(y, l);
-    					if (l.size() == 4) {
-    						return true;
-    					}
-    				} else {
-    					List<Integer> l = new ArrayList<Integer>();
-    					l.add(i);
-    					win.put(y, l);
-    				}
-    			}
-    		}
-
-    		for (int i = 5; i > -1; i--) {
-    			if (arr[i][x] != c) {
-    				win = new HashMap<Integer, List<Integer>>();
-    				continue;
-    			} else {
-    				if (win.containsKey(x)) {
-    					List<Integer> l = win.get(x);
-    					l.add(i);
-    					win.put(x, l);
-    					if (l.size() == 4) {
-    						return true;
-    					}
-    				} else {
-    					List<Integer> l = new ArrayList<Integer>();
-    					l.add(i);
-    					win.put(x, l);
-    				}
-    			}
-    		}
-
-    		boolean stopLoop = false;
-    		int tempX = x;
-    		int tempY = y;
-
-    		while (!stopLoop) {
-    			if (tempX == 0 || tempY == 5) {
-    				stopLoop = true;
-    				continue;
-    			}
-    			tempX--;
-    			tempY++;
-    		}
-    		int counter = 0;
-    		
-    		stopLoop = false;
-    		while (!stopLoop) {
-    			if (arr[tempY][tempX] != c) {
-    				counter = 0;
-    				tempY--;
-    				tempX++;
-    				if(tempY < 0){
-    					break;
-    				}
-    				if(tempX > 6){
-    					break;
-    				}
-    				continue;
-    			} else {
-    				counter++;
-    				if (counter == 4) {
-    					return true;
-    				}
-    				tempY--;
-    				tempX++;
-    				if(tempY < 0){
-    					break;
-    				}
-    				if(tempX > 6){
-    					break;
-    				}
-    			}
-    		}
-    		stopLoop = false;
-    		tempX = x;
-    		tempY = y;
-
-    		while (!stopLoop) {
-    			if (tempX == 6 || tempY == 5) {
-    				stopLoop = true;
-    				continue;
-    			}
-    			tempX++;
-    			tempY++;
-    		}
-    		stopLoop = false;
-    		while (!stopLoop) {
-    			if (arr[tempY][tempX] != c) {
-    				counter = 0;
-    				tempY--;
-    				tempX--;
-    				if(tempY < 0){
-    					break;
-    				}
-    				if(tempX < 0){
-    					break;
-    				}
-    				continue;
-    			} else {
-    				counter++;
-    				if (counter == 4) {
-    					return true;
-    				}
-    				tempY--;
-    				tempX--;
-    				if(tempY < 0){
-    					break;
-    				}
-    				if(tempX < 0){
-    					break;
-    				}
-    			}
-    		}
-
-    		return false;
-    }
     
 }

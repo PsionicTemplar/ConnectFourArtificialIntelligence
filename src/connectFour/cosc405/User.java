@@ -165,18 +165,24 @@ public class User {
         private int checkSides(int move, char player_Mark){
             int sign_Count = 0;
             int blank_Count = 0;
+            int blanks2fill = 0;
             
             //Check Left
             for(int z = move; z > -1; z--){
                 if(sign_Count + blank_Count == 3){
                     break;
                 }
-                if(board_Arr[displace[move]][z] == player_Mark){
+                else if(board_Arr[displace[move]][z] == player_Mark){
                     sign_Count++;
-                    break;
                 }
                 else if(board_Arr[displace[move]][z] == ' '){
                     blank_Count++;
+                    
+                    for(int k = displace[move]; k < 6; k++){
+                        if(board_Arr[k][move] == ' '){
+                            blanks2fill++;
+                        }
+                    }
                 }
                 else
                     break;
@@ -187,12 +193,18 @@ public class User {
                 if(sign_Count + blank_Count == 3){
                     break;
                 }
-                if(board_Arr[displace[move]][i] == player_Mark){
+                else if(board_Arr[displace[move]][i] == player_Mark){
                     sign_Count++;
                     break;
                 }
                 else if(board_Arr[displace[move]][i] == ' '){
                     blank_Count++;
+                    
+                    for(int k = displace[move]; k < 6; k++){
+                        if(board_Arr[k][move] == ' '){
+                            blanks2fill++;
+                        }
+                    }
                 }
                 else
                     break;
@@ -202,12 +214,13 @@ public class User {
                         blank_Count = 10;
                     }
             
-            return blank_Count;
+            return blank_Count + blanks2fill;
         }
         
         private int check_Ldiag(int move, char player_Mark){
             int sign_Count = 0;
             int blank_Count = 0;
+            int blanks2fill = 0;
             
             // Check Down & Right
             outloop1:
@@ -218,6 +231,12 @@ public class User {
                     }
                     else if(board_Arr[displace[move]][i] == ' '){
                         blank_Count++;
+                        
+                        for(int k = displace[move]; k < 6; k++){
+                            if(board_Arr[k][move] == ' '){
+                                blanks2fill++;
+                            }
+                        }
                     }
                     else
                         break outloop1;
@@ -236,6 +255,11 @@ public class User {
                     }
                     else if(board_Arr[displace[move]][i] == ' '){
                         blank_Count++;
+                        for(int k = displace[move]; k < 6; k++){
+                            if(board_Arr[k][move] == ' '){
+                                blanks2fill++;
+                            }
+                        }
                     }
                     else
                         break outloop2;
@@ -251,12 +275,13 @@ public class User {
                         blank_Count = 10;
                     }
            
-            return blank_Count;
+            return blank_Count + blanks2fill;
         }
         
         private int check_Rdiag(int move, char player_Mark){
             int sign_Count = 0;
             int blank_Count = 0;
+            int blanks2fill = 0;
             
             //Check Down and Left
             outloop1:
@@ -267,6 +292,11 @@ public class User {
                     }
                     else if(board_Arr[displace[move]][i] == ' '){
                         blank_Count++;
+                        for(int k = displace[move]; k < 6; k++){
+                            if(board_Arr[k][move] == ' '){
+                                blanks2fill++;
+                            }
+                        }
                     }
                     else
                         break outloop1;
@@ -284,6 +314,11 @@ public class User {
                     }
                     else if(board_Arr[displace[move]][i] == ' '){
                         blank_Count++;
+                        for(int k = displace[move]; k < 6; k++){
+                            if(board_Arr[k][move] == ' '){
+                                blanks2fill++;
+                            }
+                        }
                     }
                     else
                         break outloop2;
@@ -294,7 +329,7 @@ public class User {
                         blank_Count = 10;
                     }
            
-            return blank_Count;
+            return blank_Count + blanks2fill;
         }
         
         public void checkTopRow(){

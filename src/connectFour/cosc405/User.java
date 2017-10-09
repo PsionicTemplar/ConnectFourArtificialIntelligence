@@ -6,16 +6,14 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
-/**
- *
- * @author alexw
- */
 public class User {
 
     private Scanner u_scan = new Scanner(System.in);
     private Random rand = new Random();
     private char board_Arr[][] = new char[6][7];
     private int displace[];
+    Move playerMove = new Move();
+    Move opponentMove = new Move();
     
         public User(){
             displace = new int[]{5,5,5,5,5,5,5};
@@ -85,36 +83,217 @@ public class User {
            this.setMove();
         }
         
-        public int check_Heur(int move){
-            int heuristic = 0;
+        /* 
+            If your passing the users requested move remember to subtract
+            one. This function needs the move and the mark of the player
+            i.e 'X' for player, 'O' for oppenent.
+        */
+        public int check_Heur(int move, char player_Mark){
+            int[] heurList = new int[7];
+            int bestHeur = 0;
+            //int index = 0;
             
+            heurList[0] = this.checkUpDo(move, player_Mark);
+            heurList[1] = this.checkSides(move, player_Mark);
+            heurList[2] = this.check_Ldiag(move, player_Mark);
+            heurList[3] = this.check_Rdiag(move, player_Mark);
             
-            return heuristic;
+            bestHeur = heurList[0];
+            
+            for(int i = 0; i < 4; i++){
+                if(heurList[i] < bestHeur){
+                    bestHeur = heurList[i];
+                }
+            }
+            
+            /* 
+                This was going to calculate the best move but we shouldnt
+                need the heuristic function to do that, I was thinking the set_
+                OpponentMove() should look at which move checked offers the best
+                heuristic and if it the lowest, go with that move.
+            */
+            //switch(index){
+            //    case 0:
+            //        break;
+            //    case 1:
+            //        break;
+            //    case 2:
+            //        break;
+            //    case 3:
+            //        break;
+            //}
+            
+            return bestHeur;
         }
         
-        private int checkUpDo(int move){
-            int heurSeg = 0;
-            int count = 0;
+        private int checkUpDo(int move, char player_Mark){
+            int sign_Count = 0;  // player specific sign found
+            int blank_Count = 0; //# of blanks until win
             
+            //Check Down
+            for(int z = displace[move]; z < 6; z++){
+                if(board_Arr[z][move] == player_Mark){
+                    sign_Count++;
+                }
+                else
+                    break;
+            }
+            
+            //Check Up
             for(int i = displace[move]; i > -1; i--){
-                count++;
              
-                if(count == 5){
+                if(sign_Count + blank_Count == 4){
                     break;
                 }
                 else
-                    if(board_Arr[i][move] != 'X'){
+                    if(board_Arr[i][move] == ' '){
+                        blank_Count++;
+                    }
+                    else
                         break;
-                    }
-                    else if(board_Arr[i][move] != 'O'){
-                        heurSeg++;
-                    }
-                    
             }
-            return heurSeg;
+            
+            if(blank_Count + sign_Count < 4){
+                        blank_Count = 10;
+                    }
+            
+            return blank_Count;
         }
         
-        //private int check
+        private int checkSides(int move, char player_Mark){
+            int sign_Count = 0;
+            int blank_Count = 0;
+            
+            //Check Left
+            for(int z = move; z > -1; z--){
+                if(sign_Count + blank_Count == 4){
+                    break;
+                }
+                if(board_Arr[displace[move]][z] == player_Mark){
+                    sign_Count++;
+                    break;
+                }
+                else if(board_Arr[displace[move]][z] == ' '){
+                    blank_Count++;
+                }
+                else
+                    break;
+            }
+            
+            //Check Right
+            for(int i = move; i < 7; i++){
+                if(sign_Count + blank_Count == 4){
+                    break;
+                }
+                if(board_Arr[displace[move]][i] == player_Mark){
+                    sign_Count++;
+                    break;
+                }
+                else if(board_Arr[displace[move]][i] == ' '){
+                    blank_Count++;
+                }
+                else
+                    break;
+            }
+            
+            if(blank_Count + sign_Count < 4){
+                        blank_Count = 10;
+                    }
+            
+            return blank_Count;
+        }
+        
+        private int check_Ldiag(int move, char player_Mark){
+            int sign_Count = 0;
+            int blank_Count = 0;
+            
+            // Check Down & Right
+            outloop1:
+            for(int i = displace[move]; i < 6; i++){
+                for(int z = move; z < 7; z++){
+                    if(board_Arr[displace[move]][i] == player_Mark){
+                        sign_Count++;
+                    }
+                    else if(board_Arr[displace[move]][i] == ' '){
+                        blank_Count++;
+                    }
+                    else
+                        break outloop1;
+                }
+            }
+            
+            // Check Up and Left
+            outloop2:
+            for(int i = displace[move]; i > -1; i--){
+                for(int z = move; z > -1; z--){
+                    if(blank_Count + sign_Count == 4){
+                        break outloop2;
+                    }
+                    if(board_Arr[displace[move]][i] == player_Mark){
+                        sign_Count++;
+                    }
+                    else if(board_Arr[displace[move]][i] == ' '){
+                        blank_Count++;
+                    }
+                    else
+                        break outloop2;
+                }
+            }
+            /*
+                If statement below checks to see if the number of player
+                marks found plus the number of blank spaces is less than
+                4 because if it is its not a win so set the value high
+                so heuristic is not considered for move.
+            */
+            if(blank_Count + sign_Count < 4){
+                        blank_Count = 10;
+                    }
+           
+            return blank_Count;
+        }
+        
+        private int check_Rdiag(int move, char player_Mark){
+            int sign_Count = 0;
+            int blank_Count = 0;
+            
+            //Check Down and Left
+            outloop1:
+            for(int i = displace[move]; i > 6; i++){
+                for(int z = move; z > -1; z--){
+                    if(board_Arr[displace[move]][i] == player_Mark){
+                        sign_Count++;
+                    }
+                    else if(board_Arr[displace[move]][i] == ' '){
+                        blank_Count++;
+                    }
+                    else
+                        break outloop1;
+                }
+            }
+            // Check Up and Right
+            outloop2:
+            for(int i = displace[move]; i < -1; i--){
+                for(int z = move; z < 7; z++){
+                    if(blank_Count + sign_Count == 4){
+                        break outloop2;
+                    }
+                    else if(board_Arr[displace[move]][i] == player_Mark){
+                        sign_Count++;
+                    }
+                    else if(board_Arr[displace[move]][i] == ' '){
+                        blank_Count++;
+                    }
+                    else
+                        break outloop2;
+                }
+            }
+            
+            if(blank_Count + sign_Count < 4){
+                        blank_Count = 10;
+                    }
+           
+            return blank_Count;
+        }
         
         public void checkTopRow(){
             int count = 0;

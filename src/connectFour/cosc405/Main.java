@@ -1,4 +1,4 @@
-//package connectFour.cosc405;
+package connectFour.cosc405;
 
 
 public class Main {

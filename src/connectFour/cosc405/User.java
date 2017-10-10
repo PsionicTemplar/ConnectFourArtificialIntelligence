@@ -1,4 +1,4 @@
-//package connectFour.cosc405;
+package connectFour.cosc405;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,10 +12,11 @@ public class User {
     private Random rand = new Random();
     private char board_Arr[][] = new char[6][7];
     private int displace[];
+    private boolean firstMove;
     
         public User(){
             displace = new int[]{5,5,5,5,5,5,5};
-
+            firstMove = true;
             for(int i = 0; i < 6; i++){
                 for(int z = 0; z < 7; z++){
                     board_Arr[i][z] = ' ';
@@ -64,6 +65,7 @@ public class User {
                 this.setMove();
             } 
             if(this.checkWin(move-1, displace[move-1]+1, 'X')){
+            	
                 this.print_Board();
                 this.gameOver(1, 'X');
                 return;
@@ -76,8 +78,7 @@ public class User {
         	int playerHeur = 10;
         	int oppHeur = 10;
         	int playerMove = 0;
-        	int oppMove = 0;
-       /* 	
+        	int oppMove = 0; 	
         	if(this.firstMove){
         		this.firstMove = false;
         		int r = rand.nextInt(7);
@@ -87,18 +88,14 @@ public class User {
             	this.setMove();
         		return;
         	}
-        	*/	
+        		
         	for (int i = 0; i <= 6; i++){
         		if (displace[i] > -1){
         			board_Arr[displace[i]][i] = 'O';
-        			//check_Heur(i);	
         		
         		for (int j = 0; j <= 6; j++){
             		if (displace[j] > -1){
-            			System.out.println(j);
             			int x = check_Heur(j, 'X');
-            			//System.out.println("Player move: " + j);
-            			//System.out.println("Player heur val: " + x);
             			if(playerHeur > x){
             				playerHeur = x;
             				playerMove = j;
@@ -107,8 +104,6 @@ public class User {
         		}
     			board_Arr[displace[i]][i] = ' ';
         		int x = check_Heur(i, 'O');
-        		//System.out.println("Opp move: " + i);
-        		//System.out.println("Opp heur val: " + x);
         		check_Heur(i, 'O');
         		if(oppHeur > x){
         			oppHeur = x;
@@ -118,7 +113,7 @@ public class User {
         	}
         	
         	if(playerHeur == 1){
-        		//System.out.println(playerMove);
+        		System.out.println("Block Player Move");
         		board_Arr[displace[playerMove]][playerMove] = 'O';
         		if(this.checkWin(playerMove, displace[playerMove], 'O')){
         			this.print_Board();
@@ -127,7 +122,6 @@ public class User {
         		}
         		displace[playerMove]--;
         	} else {
-        		//System.out.println(oppMove);
         		board_Arr[displace[oppMove]][oppMove] = 'O';
 				if(this.checkWin(oppMove, displace[oppMove], 'O')){
 					this.print_Board();
@@ -163,15 +157,13 @@ public class User {
                     bestHeur = heurList[i];
                 }
             } 
-      
+            
             return bestHeur;
         }
         
         private int checkUpDo(int move, char player_Mark){
             int sign_Count = 0;  // player specific sign found
-            int blank_Count = 0; //# of blanks until win
             
-            //Check Down
             for(int z = displace[move]+1; z < 6; z++){
                 if(board_Arr[z][move] == player_Mark){
                     sign_Count++;
@@ -179,87 +171,57 @@ public class User {
                 else
                     break;
             }
-            if(displace[move]-4 < 0){
+            if(displace[move]-4+sign_Count < 0){
                 return 100;
             }else{
                 return 4-sign_Count;
             }
-            
-            /*
-            //Check Up
-            for(int i = displace[move]; i > -1; i--){
-             
-                if(sign_Count + blank_Count == 3){
-                    break;
-                }
-                else
-                    if(board_Arr[i][move] == ' '){
-                        blank_Count++;
-                    }
-                    else
-                        break;
-            }
-            
-            if(blank_Count + sign_Count < 3){
-                        blank_Count = 10;
-                    }
-            
-            return blank_Count;
-            */
         }
         
         private int checkSides(int move, char player_Mark){
-            int sign_Count = 0;
-            int blank_Count = 0;
-            int blanks2fill = 0;
+            int bestHeur = 100;
             
-            for(int z = move-1; z > -1; z--){
-                if(sign_Count + blank_Count == 3){
-                    break;
-                }
-                else if(board_Arr[displace[move]][z] == player_Mark){
-                    sign_Count++;
-                }
-                else if(board_Arr[displace[move]][z] == ' '){
-                    blank_Count++;
-                    
-                    for(int k = displace[move]+1; k < 6; k++){
-                        if(board_Arr[k][move] == ' '){
-                            blanks2fill++;
-                        }
-                    }
-                }
-                else
-                    break;
+            for(int z = 0; z < 4; z++){
+            	List<Character> check = new ArrayList<Character>();
+            	int blanks2fill = 0;
+            	for(int x = 0; x < 4; x++){
+            		try{
+            			check.add(board_Arr[displace[move]][move - (3-x-z)]);
+            			if(displace[move] != 5){
+	            			for(int y = displace[move]; y < 6; y++){
+	            				if(board_Arr[y][move - (3-x-z)] != ' '){
+	            					break;
+	            				}
+	            				blanks2fill++;
+	            			}
+            			}
+            		}catch(Exception e){
+            			break;
+            		}
+            	}
+            	if(check.size() != 4){
+            		continue;
+            	}
+            	if(player_Mark == 'X'){
+            		if(check.contains('O')){
+            			continue;
+            		}
+            	}else{
+            		if(check.contains('X')){
+            			continue;
+            		}
+            	}
+            	for(char c: check){
+            		if(c == ' '){
+            			blanks2fill++;
+            		}
+            	}
+            	if(blanks2fill < bestHeur){
+            		bestHeur = blanks2fill;
+            	}
             }
             
-            //Check Right
-            for(int i = move+1; i < 7; i++){
-                if(sign_Count + blank_Count == 3){
-                    break;
-                }
-                else if(board_Arr[displace[move]][i] == player_Mark){
-                    sign_Count++;
-                    break;
-                }
-                else if(board_Arr[displace[move]][i] == ' '){
-                    blank_Count++;
-                    
-                    for(int k = displace[move]+1; k < 6; k++){
-                        if(board_Arr[k][move] == ' '){
-                            blanks2fill++;
-                        }
-                    }
-                }
-                else
-                    break;
-            }
-            
-            if(blank_Count + sign_Count < 3){
-                        blank_Count = 10;
-                    }
-            
-            return blank_Count + blanks2fill;
+            return bestHeur;
         }
         
         private int check_Ldiag(int move, char player_Mark){
@@ -479,6 +441,7 @@ public class User {
 		stopLoop = false;
 		tempX = x;
 		tempY = y;
+		counter = 0;
 
 		while (!stopLoop) {
 			if (tempX == 6 || tempY == 5) {
@@ -586,7 +549,6 @@ public class User {
         public void print_ExitEarly(){
             System.out.print("ENTER 8 TO QUIT AT ANYTIME\n");
         try {
-            // thread to sleep for 1000 milliseconds
             Thread.sleep(1000);
          } catch (Exception e){
              return;

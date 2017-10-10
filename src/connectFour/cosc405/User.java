@@ -8,14 +8,23 @@ import java.util.Scanner;
 
 public class User {
 
+	/*
+	 * Contributers: 
+	 * Jordan Obusek 
+	 * Jesse Kreutzberger
+	 * Alex Kells
+	 * Nicholas Braniff
+	 */
+	
     private Scanner u_scan = new Scanner(System.in);
     private Random rand = new Random();
     private char board_Arr[][] = new char[6][7];
     private int displace[];
+    private boolean firstMove;
     
         public User(){
             displace = new int[]{5,5,5,5,5,5,5};
-
+            firstMove = true;
             for(int i = 0; i < 6; i++){
                 for(int z = 0; z < 7; z++){
                     board_Arr[i][z] = ' ';
@@ -42,7 +51,7 @@ public class User {
         
         public void setMove(){
             
-            this.checkTopRow();
+            this.checkTopRow('X');
             System.out.print("Select your next move:");
             int move = 0;
             
@@ -63,27 +72,77 @@ public class User {
                 System.out.print("\nPlease enter a value 1-7\n");
                 this.setMove();
             } 
-            
+            if(this.checkWin(move-1, displace[move-1]+1, 'X')){
+            	
+                this.print_Board();
+                this.gameOver(1, 'X');
+                return;
+            }
             this.print_Board();
             this.set_OpponentMove();
         }
         
         public void set_OpponentMove(){
-            
-            int r = rand.nextInt(7);
-            
-            this.checkTopRow();
-            
-            if(displace[r] <= -1){
-                this.print_colFullError(0);
-            }
-            else
-                board_Arr[displace[r]][r] = 'O';
-                    --displace[r];
-                    
-           this.print_Board();
-           this.setMove();
-        }
+        	int playerHeur = 10;
+        	int oppHeur = 10;
+        	int playerMove = 0;
+        	int oppMove = 0; 	
+        	if(this.firstMove){
+        		this.firstMove = false;
+        		int r = rand.nextInt(7);
+        		board_Arr[displace[r]][r] = 'O';
+        		displace[r]--;
+        		this.print_Board();
+            	this.setMove();
+        		return;
+        	}
+        		
+        	for (int i = 0; i <= 6; i++){
+        		if (displace[i] > -1){
+        			board_Arr[displace[i]][i] = 'O';
+        		
+        		for (int j = 0; j <= 6; j++){
+            		if (displace[j] > -1){
+            			int x = check_Heur(j, 'X');
+            			if(playerHeur > x){
+            				playerHeur = x;
+            				playerMove = j;
+            			}
+            		}
+        		}
+    			board_Arr[displace[i]][i] = ' ';
+        		int x = check_Heur(i, 'O');
+        		check_Heur(i, 'O');
+        		if(oppHeur > x){
+        			oppHeur = x;
+        			oppMove = i;
+        		}
+        		}     		
+        	}
+        	
+        	if(playerHeur == 1){
+        		System.out.println("Block Player Move");
+        		board_Arr[displace[playerMove]][playerMove] = 'O';
+        		if(this.checkWin(playerMove, displace[playerMove], 'O')){
+        			this.print_Board();
+        			this.gameOver(1, 'O');
+        			return;
+        		}
+        		displace[playerMove]--;
+        	} else {
+        		board_Arr[displace[oppMove]][oppMove] = 'O';
+				if(this.checkWin(oppMove, displace[oppMove], 'O')){
+					this.print_Board();
+					this.gameOver(1, 'O');
+        			return;
+        		}
+        		displace[oppMove]--;
+        	}
+        	
+        	this.print_Board();
+        	this.setMove();
+        }        
+
         
         /* 
             If your passing the users requested move remember to subtract
@@ -91,9 +150,8 @@ public class User {
             i.e 'X' for player, 'O' for oppenent.
         */
         public int check_Heur(int move, char player_Mark){
-            int[] heurList = new int[7];
+            int[] heurList = new int[4];
             int bestHeur = 0;
-            //int index = 0;
             
             heurList[0] = this.checkUpDo(move, player_Mark);
             heurList[1] = this.checkSides(move, player_Mark);
@@ -106,118 +164,94 @@ public class User {
                 if(heurList[i] < bestHeur){
                     bestHeur = heurList[i];
                 }
-            }
-            
-            /* 
-                This was going to calculate the best move but we shouldnt
-                need the heuristic function to do that, I was thinking the set_
-                OpponentMove() should look at which move checked offers the best
-                heuristic and if it the lowest, go with that move.
-            */
-            //switch(index){
-            //    case 0:
-            //        break;
-            //    case 1:
-            //        break;
-            //    case 2:
-            //        break;
-            //    case 3:
-            //        break;
-            //}
+            } 
             
             return bestHeur;
         }
         
         private int checkUpDo(int move, char player_Mark){
             int sign_Count = 0;  // player specific sign found
-            int blank_Count = 0; //# of blanks until win
             
-            //Check Down
-            for(int z = displace[move]; z < 6; z++){
+            for(int z = displace[move]+1; z < 6; z++){
                 if(board_Arr[z][move] == player_Mark){
                     sign_Count++;
                 }
                 else
                     break;
             }
-            
-            //Check Up
-            for(int i = displace[move]; i > -1; i--){
-             
-                if(sign_Count + blank_Count == 3){
-                    break;
-                }
-                else
-                    if(board_Arr[i][move] == ' '){
-                        blank_Count++;
-                    }
-                    else
-                        break;
+            if(displace[move]-4+sign_Count < 0){
+                return 100;
+            }else{
+                return 4-sign_Count;
             }
-            
-            if(blank_Count + sign_Count < 3){
-                        blank_Count = 10;
-                    }
-            
-            return blank_Count;
         }
         
         private int checkSides(int move, char player_Mark){
-            int sign_Count = 0;
-            int blank_Count = 0;
+            int bestHeur = 100;
             
-            //Check Left
-            for(int z = move; z > -1; z--){
-                if(sign_Count + blank_Count == 3){
-                    break;
-                }
-                if(board_Arr[displace[move]][z] == player_Mark){
-                    sign_Count++;
-                    break;
-                }
-                else if(board_Arr[displace[move]][z] == ' '){
-                    blank_Count++;
-                }
-                else
-                    break;
+            for(int z = 0; z < 4; z++){
+            	List<Character> check = new ArrayList<Character>();
+            	int blanks2fill = 0;
+            	for(int x = 0; x < 4; x++){
+            		try{
+            			check.add(board_Arr[displace[move]][move - (3-x-z)]);
+            			if(displace[move] != 5){
+	            			for(int y = displace[move]; y < 6; y++){
+	            				if(board_Arr[y][move - (3-x-z)] != ' '){
+	            					break;
+	            				}
+	            				blanks2fill++;
+	            			}
+            			}
+            		}catch(Exception e){
+            			break;
+            		}
+            	}
+            	if(check.size() != 4){
+            		continue;
+            	}
+            	if(player_Mark == 'X'){
+            		if(check.contains('O')){
+            			continue;
+            		}
+            	}else{
+            		if(check.contains('X')){
+            			continue;
+            		}
+            	}
+            	for(char c: check){
+            		if(c == ' '){
+            			blanks2fill++;
+            		}
+            	}
+            	if(blanks2fill < bestHeur){
+            		bestHeur = blanks2fill;
+            	}
             }
             
-            //Check Right
-            for(int i = move; i < 7; i++){
-                if(sign_Count + blank_Count == 3){
-                    break;
-                }
-                if(board_Arr[displace[move]][i] == player_Mark){
-                    sign_Count++;
-                    break;
-                }
-                else if(board_Arr[displace[move]][i] == ' '){
-                    blank_Count++;
-                }
-                else
-                    break;
-            }
-            
-            if(blank_Count + sign_Count < 3){
-                        blank_Count = 10;
-                    }
-            
-            return blank_Count;
+            return bestHeur;
         }
         
         private int check_Ldiag(int move, char player_Mark){
             int sign_Count = 0;
             int blank_Count = 0;
+            int blanks2fill = 0;
             
             // Check Down & Right
             outloop1:
-            for(int i = displace[move]; i < 6; i++){
-                for(int z = move; z < 7; z++){
-                    if(board_Arr[displace[move]][i] == player_Mark){
+            for(int i = displace[move]+1; i < 6; i++){
+                for(int z = move+1; z < 7; z++){
+                    if(board_Arr[i][z] == player_Mark){
                         sign_Count++;
                     }
-                    else if(board_Arr[displace[move]][i] == ' '){
+                    else if(board_Arr[i][z] == ' '){
                         blank_Count++;
+                        
+                        for(int k = i; k < 6; k++){
+                            if(board_Arr[k][z] == ' '){
+                                blanks2fill++;
+                            }
+                        }
                     }
                     else
                         break outloop1;
@@ -226,47 +260,52 @@ public class User {
             
             // Check Up and Left
             outloop2:
-            for(int i = displace[move]; i > -1; i--){
-                for(int z = move; z > -1; z--){
+            for(int i = displace[move]-1; i > -1; i--){
+                for(int z = move-1; z > -1; z--){
                     if(blank_Count + sign_Count == 3){
                         break outloop2;
                     }
-                    if(board_Arr[displace[move]][i] == player_Mark){
+                    if(board_Arr[i][z] == player_Mark){
                         sign_Count++;
                     }
-                    else if(board_Arr[displace[move]][i] == ' '){
+                    else if(board_Arr[i][z] == ' '){
                         blank_Count++;
+                        for(int k = i; k < 6; k++){
+                            if(board_Arr[k][z] == ' '){
+                                blanks2fill++;
+                            }
+                        }
                     }
                     else
                         break outloop2;
                 }
             }
-            /*
-                If statement below checks to see if the number of player
-                marks found plus the number of blank spaces is less than
-                4 because if it is its not a win so set the value high
-                so heuristic is not considered for move.
-            */
             if(blank_Count + sign_Count < 3){
                         blank_Count = 10;
                     }
            
-            return blank_Count;
+            return blank_Count + blanks2fill;
         }
         
         private int check_Rdiag(int move, char player_Mark){
             int sign_Count = 0;
             int blank_Count = 0;
+            int blanks2fill = 0;
             
             //Check Down and Left
             outloop1:
-            for(int i = displace[move]; i > 6; i++){
-                for(int z = move; z > -1; z--){
-                    if(board_Arr[displace[move]][i] == player_Mark){
+            for(int i = displace[move]+1; i > 6; i++){
+                for(int z = move-1; z > -1; z--){
+                    if(board_Arr[i][z] == player_Mark){
                         sign_Count++;
                     }
-                    else if(board_Arr[displace[move]][i] == ' '){
+                    else if(board_Arr[i][z] == ' '){
                         blank_Count++;
+                        for(int k = i; k < 6; k++){
+                            if(board_Arr[k][z] == ' '){
+                                blanks2fill++;
+                            }
+                        }
                     }
                     else
                         break outloop1;
@@ -274,16 +313,21 @@ public class User {
             }
             // Check Up and Right
             outloop2:
-            for(int i = displace[move]; i < -1; i--){
-                for(int z = move; z < 7; z++){
+            for(int i = displace[move]-1; i < -1; i--){
+                for(int z = move+1; z < 7; z++){
                     if(blank_Count + sign_Count == 3){
                         break outloop2;
                     }
-                    else if(board_Arr[displace[move]][i] == player_Mark){
+                    else if(board_Arr[i][z] == player_Mark){
                         sign_Count++;
                     }
-                    else if(board_Arr[displace[move]][i] == ' '){
+                    else if(board_Arr[i][z] == ' '){
                         blank_Count++;
+                        for(int k = i; k < 6; k++){
+                            if(board_Arr[k][z] == ' '){
+                                blanks2fill++;
+                            }
+                        }
                     }
                     else
                         break outloop2;
@@ -294,10 +338,10 @@ public class User {
                         blank_Count = 10;
                     }
            
-            return blank_Count;
+            return blank_Count + blanks2fill;
         }
         
-        public void checkTopRow(){
+        public void checkTopRow(char playerMark){
             int count = 0;
             
             for(int i = 0; i < 7; i++){
@@ -306,7 +350,7 @@ public class User {
                 }
             }
             if(count == 7){
-                this.gameOver();
+                this.gameOver(0, playerMark);
             }
             else
                 count = 0;
@@ -405,6 +449,7 @@ public class User {
 		stopLoop = false;
 		tempX = x;
 		tempY = y;
+		counter = 0;
 
 		while (!stopLoop) {
 			if (tempX == 6 || tempY == 5) {
@@ -466,9 +511,24 @@ public class User {
             }
         }
         
-        public void gameOver(){
-            System.out.print("\nNO WINNER!\n");
-            System.out.print("Would you like to play again? YES[1], NO[0]:");
+        public void gameOver(int i, char playerMark){
+            
+            if(i == 0){
+                System.out.print("\nNO WINNER!\n");
+            }
+            else if(i == 1){
+                if(playerMark == 'X'){
+                    System.out.print("------------");
+                    System.out.print("\nPlayer Wins!\n");
+                    System.out.print("------------");
+                }
+                else if(playerMark == 'O'){
+                    System.out.print("------------");
+                    System.out.print("\nOpponent Wins!\n");
+                    System.out.print("------------");
+                }
+            }
+            System.out.print("\nWould you like to play again? YES[1], NO[0]:");
             int v = u_scan.nextInt();
             
             if(v == 1){
@@ -497,7 +557,6 @@ public class User {
         public void print_ExitEarly(){
             System.out.print("ENTER 8 TO QUIT AT ANYTIME\n");
         try {
-            // thread to sleep for 1000 milliseconds
             Thread.sleep(1000);
          } catch (Exception e){
              return;
@@ -530,4 +589,4 @@ public class User {
             }
         }
     
-    }
+}

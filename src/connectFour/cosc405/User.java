@@ -8,6 +8,14 @@ import java.util.Scanner;
 
 public class User {
 
+	/*
+	 * Contributers: 
+	 * Jordan Obusek 
+	 * Jesse Kreutzberger
+	 * Alex Kells
+	 * Nicholas Braniff
+	 */
+	
     private Scanner u_scan = new Scanner(System.in);
     private Random rand = new Random();
     private char board_Arr[][] = new char[6][7];
